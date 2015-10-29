@@ -1,0 +1,4 @@
+Django==1.8.5
+aioredis==0.2.4
+ipython==4.0.0
+redis==2.10.3
