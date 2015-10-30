@@ -15,25 +15,27 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='APIKey',
             fields=[
-                ('key', models.CharField(default=dj.jobs.models.generate_key, serialize=False, max_length=40, primary_key=True, unique=True)),
+                ('key', models.CharField(primary_key=True, max_length=40, default=dj.jobs.models.generate_key, unique=True, serialize=False)),
             ],
         ),
         migrations.CreateModel(
             name='Job',
             fields=[
                 ('timestamp_created', models.DateTimeField(auto_created=True)),
-                ('id', models.UUIDField(default=uuid.uuid4, db_index=True, primary_key=True, serialize=False, editable=False)),
-                ('timestamp_complete', models.DateTimeField(blank=True, null=True)),
-                ('status', models.CharField(default='pending', choices=[('pending', 'pending'), ('in_progress', 'in_progress'), ('html_generated', 'html_generated'), ('complete', 'complete')], max_length=20)),
-                ('html', models.TextField(blank=True, null=True)),
+                ('id', models.UUIDField(primary_key=True, db_index=True, editable=False, serialize=False, default=uuid.uuid4)),
+                ('timestamp_started', models.DateTimeField(null=True, blank=True)),
+                ('timestamp_complete', models.DateTimeField(null=True, blank=True)),
+                ('status', models.CharField(max_length=20, default='pending', choices=[('pending', 'pending'), ('in_progress', 'in_progress'), ('complete', 'complete')])),
+                ('html', models.TextField(null=True, blank=True)),
                 ('file_link', models.URLField(null=True, blank=True)),
-                ('work_log', models.TextField(blank=True, null=True)),
+                ('file_size', models.PositiveIntegerField(null=True, blank=True)),
+                ('work_log', models.TextField(null=True, blank=True)),
             ],
         ),
         migrations.CreateModel(
             name='Organisation',
             fields=[
-                ('id', models.AutoField(serialize=False, verbose_name='ID', primary_key=True, auto_created=True)),
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=255)),
             ],
         ),

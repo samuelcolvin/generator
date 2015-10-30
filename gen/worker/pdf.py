@@ -18,16 +18,16 @@ def execute_wk(*args):
 
 
 def gen_pdf(src, cmd_args):
-    with NamedTemporaryFile(suffix='.pdf', mode='rb+') as pdf_file:
+    with NamedTemporaryFile(suffix='.pdf', mode='rb+', delete=False) as pdf_file:
         cmd_args += [src, pdf_file.name]
         _, stderr, returncode = execute_wk(*cmd_args)
         pdf_file.seek(0)
-        pdf_data = pdf_file.read()
+        pdf_data = pdf_file.readline()
         # it seems wkhtmltopdf's error codes can be false, we'll ignore them if we
         # seem to have generated a pdf
         if returncode != 0 and pdf_data[:4] != b'%PDF':
             raise IOError('error running wkhtmltopdf, command: %r\nresponse: "%s"' % (cmd_args, stderr.strip()))
-        return pdf_data
+    return pdf_file.name
 
 
 def generate_pdf(html,

@@ -1,21 +1,27 @@
+import os
 import json
 import asyncio
-from threading import BoundedSemaphore
+from asyncio import Semaphore
 
 import aioredis
-from common import JobStatus, QUEUES, PGCon, MAX_WORKER_THREADS, loop
+from common import JobStatus, QUEUES, PGCon, MAX_WORKER_THREADS, MAX_WORKER_JOBS, loop
 from .pdf import generate_pdf
+from .store import store_file
 
 pg_con = PGCon()
-thread_sema = BoundedSemaphore(value=MAX_WORKER_THREADS)
-
-async def update_status(job_id, status):
-    await pg_con.execute('UPDATE jobs_job SET status=%s WHERE id=%s;', [status, job_id])
+wkh2p_sema = Semaphore(value=MAX_WORKER_THREADS, loop=loop)
+worker_sema = Semaphore(value=MAX_WORKER_JOBS, loop=loop)
 
 
-async def update_html(job_id, new_html):
-    ctx = [JobStatus.STATUS_HTML_GENERATED, new_html, job_id]
-    await pg_con.execute('UPDATE jobs_job SET status=%s, html=%s WHERE id=%s;', ctx)
+async def update_job_status(job_id, status):
+    ctx = [status, job_id]
+    await pg_con.execute('UPDATE jobs_job SET status=%s, timestamp_started=current_timestamp WHERE id=%s;', ctx)
+
+
+async def update_job_finished(job_id, pdf_url, html, file_size):
+    ctx = [JobStatus.STATUS_COMPLETE, pdf_url, html, file_size, job_id]
+    await pg_con.execute('UPDATE jobs_job SET status=%s, timestamp_complete=current_timestamp, file_link=%s, '
+                         'html=%s, file_size=%s WHERE id=%s;', ctx)
 
 
 async def work(raw_data):
@@ -34,33 +40,38 @@ async def work(raw_data):
     data = json.loads(text)
     job_id = data['job_id']
     print('doing {}'.format(job_id))
-    await update_status(job_id, JobStatus.STATUS_IN_PROGRESS)
-    print('html {}'.format(data['html']))
+    await update_job_status(job_id, JobStatus.STATUS_IN_PROGRESS)
     content = data.get('content')
     if content:
         raise NotImplementedError()
         # TODO generate html
     else:
         html = data['html']
-    await update_html(job_id, html)
-    thread_sema.acquire()
-    pdf_data = await loop.run_in_executor(None, generate_pdf, html)
-    thread_sema.release()
-    # TODO send pdf to storage eg. S3
-    # TODO update job status in pg, inc. storage url and date
-    await asyncio.sleep(5)
-    print(type(pdf_data))
-    print('finished, pdf len:', len(pdf_data))
+    await wkh2p_sema.acquire()
+    pdf_file = await loop.run_in_executor(None, generate_pdf, html)
+    wkh2p_sema.release()
+
+    # the temporary file is not automatically deleted, so we need to make sure we do it here
+    try:
+        file_size = os.path.getsize(pdf_file)
+        pdf_url = await store_file(pdf_file)
+    finally:
+        os.remove(pdf_file)
+    await update_job_finished(job_id, pdf_url, html, file_size)
+    worker_sema.release()
+
+
+async def work_loop():
+    # TODO deal with SIGTERM gracefully
+    redis = await aioredis.create_redis(('localhost', 6379), loop=loop)
+    try:
+        while True:
+            await worker_sema.acquire()
+            queue, data = await redis.blpop(*QUEUES)
+            asyncio.ensure_future(work(data))
+    finally:
+        redis.close()
 
 
 def run_worker():
-    # TODO deal with SIGTERM gracefully
-    async def go():
-        redis = await aioredis.create_redis(('localhost', 6379), loop=loop)
-        while True:
-            queue, data = await redis.blpop(*QUEUES)
-            asyncio.ensure_future(work(data))
-            # await task
-        redis.close()
-
-    loop.run_until_complete(go())
+    loop.run_until_complete(work_loop())

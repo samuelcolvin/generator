@@ -30,10 +30,13 @@ class Job(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
     org = models.ForeignKey(Organisation)
     timestamp_created = models.DateTimeField(auto_created=True)
+    timestamp_started = models.DateTimeField(null=True, blank=True)
     timestamp_complete = models.DateTimeField(null=True, blank=True)
     status = models.CharField(choices=JobStatus.STATUS_CHOICES, max_length=20, default=JobStatus.STATUS_PENDING)
     html = models.TextField(null=True, blank=True)
     file_link = models.URLField(null=True, blank=True)
+    # TODO: filesize
+    file_size = models.PositiveIntegerField(null=True, blank=True)
     work_log = models.TextField(null=True, blank=True)
 
     def __str__(self):
