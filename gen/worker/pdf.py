@@ -22,15 +22,15 @@ def gen_pdf(src, cmd_args):
         cmd_args += [src, pdf_file.name]
         _, stderr, returncode = execute_wk(*cmd_args)
         pdf_file.seek(0)
-        pdf_string = pdf_file.read()
+        pdf_data = pdf_file.read()
         # it seems wkhtmltopdf's error codes can be false, we'll ignore them if we
         # seem to have generated a pdf
-        if returncode != 0 and pdf_string[:4] != b'%PDF':
+        if returncode != 0 and pdf_data[:4] != b'%PDF':
             raise IOError('error running wkhtmltopdf, command: %r\nresponse: "%s"' % (cmd_args, stderr.strip()))
-        return pdf_string
+        return pdf_data
 
 
-def generate_pdf(source,
+def generate_pdf(html,
                  quiet=True,
                  grayscale=False,
                  lowquality=False,
@@ -55,7 +55,7 @@ def generate_pdf(source,
     to command line args with "'--' + original_name.replace('_', '-')"
     Arguments which are True are passed with no value eg. just --quiet, False
     and None arguments are missed, everything else is passed with str(value).
-    :param source: html string to generate pdf from or url to get
+    :param html: html string to generate pdf from
     :param quiet: bool
     :param grayscale: bool
     :param lowquality: bool
@@ -72,8 +72,6 @@ def generate_pdf(source,
     :param extra_kwargs: any exotic extra options for wkhtmltopdf
     :return: string representing pdf
     """
-    is_url = any(source.strip().startswith(s) for s in ('http', 'www'))
-
     loc = locals()
     py_args = {n: loc[n] for n in
                ['quiet', 'grayscale', 'lowquality', 'margin_bottom', 'margin_left', 'margin_right', 'margin_top',
@@ -89,11 +87,8 @@ def generate_pdf(source,
         else:
             cmd_args.extend([arg_name, str(value)])
 
-    if is_url:
-        return gen_pdf(source, cmd_args)
-
-    with NamedTemporaryFile(suffix='.html', mode='wb') as html_file:
-        html_file.write(source.encode('utf-8'))
+    with NamedTemporaryFile(suffix='.html', mode='w') as html_file:
+        html_file.write(html)
         html_file.flush()
         html_file.seek(0)
         return gen_pdf(html_file.name, cmd_args)

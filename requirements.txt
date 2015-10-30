@@ -1,4 +1,9 @@
 Django==1.8.5
+aiohttp==0.18.3
+aiopg==0.7.0
 aioredis==0.2.4
+click==5.1
+django-extensions==1.5.7
+gunicorn==19.3.0
 ipython==4.0.0
 redis==2.10.3
