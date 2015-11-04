@@ -25,3 +25,10 @@ https://github.com/sameersbn/docker-squid
   * signing documents
   * page ordering eg. booklet
   * PDF forms. Maybe no one sane would use these?
+
+
+## Setup
+
+To install the virtualenv:
+
+    virtualenv -p /usr/bin/python3.5 env
