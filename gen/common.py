@@ -31,6 +31,9 @@ QUEUES = [
 MAX_WORKER_THREADS = 2
 MAX_WORKER_JOBS = 5
 
+S3_KEY = os.getenv('S3_KEY')
+S3_SECRET = os.getenv('S3_SECRET')
+
 loop = asyncio.get_event_loop()
 
 
@@ -61,3 +64,8 @@ stream_handler.setLevel(logging.DEBUG)
 stream_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(ip)s %(levelname)s - %(message)s'))
 http_logger = logging.getLogger('http')
 http_logger.addHandler(stream_handler)
+
+try:
+    from localsettings import *
+except ImportError:
+    pass

@@ -7,6 +7,7 @@ from common import JobStatus
 
 class Organisation(models.Model):
     name = models.CharField(max_length=255)
+    code = models.SlugField(max_length=63, unique=True)
 
     def __str__(self):
         return self.name
@@ -34,8 +35,6 @@ class Job(models.Model):
     timestamp_complete = models.DateTimeField(null=True, blank=True)
     status = models.CharField(choices=JobStatus.STATUS_CHOICES, max_length=20, default=JobStatus.STATUS_PENDING)
     html = models.TextField(null=True, blank=True)
-    file_link = models.URLField(null=True, blank=True)
-    # TODO: filesize
     file_size = models.PositiveIntegerField(null=True, blank=True)
     work_log = models.TextField(null=True, blank=True)
 

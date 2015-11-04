@@ -13,15 +13,23 @@ wkh2p_sema = Semaphore(value=MAX_WORKER_THREADS, loop=loop)
 worker_sema = Semaphore(value=MAX_WORKER_JOBS, loop=loop)
 
 
-async def update_job_status(job_id, status):
-    ctx = [status, job_id]
+async def job_in_progress(job_id):
+    ctx = [JobStatus.STATUS_IN_PROGRESS, job_id]
     await pg_con.execute('UPDATE jobs_job SET status=%s, timestamp_started=current_timestamp WHERE id=%s;', ctx)
 
 
-async def update_job_finished(job_id, pdf_url, html, file_size):
-    ctx = [JobStatus.STATUS_COMPLETE, pdf_url, html, file_size, job_id]
-    await pg_con.execute('UPDATE jobs_job SET status=%s, timestamp_complete=current_timestamp, file_link=%s, '
+async def job_finished(job_id, html, file_size):
+    ctx = [JobStatus.STATUS_COMPLETE, html, file_size, job_id]
+    await pg_con.execute('UPDATE jobs_job SET status=%s, timestamp_complete=current_timestamp, '
                          'html=%s, file_size=%s WHERE id=%s;', ctx)
+
+
+async def get_organisation_code(job_id):
+     cur = await pg_con.execute("SELECT jobs_organisation.code FROM jobs_organisation INNER JOIN jobs_job ON "
+                                "(jobs_organisation.id = jobs_job.org_id) WHERE "
+                                "jobs_job.id = %s", [job_id])
+     org = await cur.fetchone()
+     return org
 
 
 async def work(raw_data):
@@ -40,7 +48,7 @@ async def work(raw_data):
     data = json.loads(text)
     job_id = data['job_id']
     print('doing {}'.format(job_id))
-    await update_job_status(job_id, JobStatus.STATUS_IN_PROGRESS)
+    await job_in_progress(job_id)
     content = data.get('content')
     if content:
         raise NotImplementedError()
@@ -54,10 +62,10 @@ async def work(raw_data):
     # the temporary file is not automatically deleted, so we need to make sure we do it here
     try:
         file_size = os.path.getsize(pdf_file)
-        pdf_url = await store_file(pdf_file)
+        await store_file(pdf_file, organisation_code)
     finally:
         os.remove(pdf_file)
-    await update_job_finished(job_id, pdf_url, html, file_size)
+    await job_finished(job_id, html, file_size)
     worker_sema.release()
 
 
