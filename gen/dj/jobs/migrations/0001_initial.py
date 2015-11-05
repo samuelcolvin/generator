@@ -27,7 +27,6 @@ class Migration(migrations.Migration):
                 ('timestamp_complete', models.DateTimeField(null=True, blank=True)),
                 ('status', models.CharField(max_length=20, default='pending', choices=[('pending', 'pending'), ('in_progress', 'in_progress'), ('complete', 'complete')])),
                 ('html', models.TextField(null=True, blank=True)),
-                ('file_link', models.URLField(null=True, blank=True)),
                 ('file_size', models.PositiveIntegerField(null=True, blank=True)),
                 ('work_log', models.TextField(null=True, blank=True)),
             ],
@@ -37,6 +36,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=255)),
+                ('code', models.SlugField(max_length=63, unique=True, editable=False)),
             ],
         ),
         migrations.AddField(

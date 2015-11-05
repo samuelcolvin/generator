@@ -3,14 +3,30 @@ import json
 import asyncio
 from asyncio import Semaphore
 
+from aiopg.pool import create_pool
 import aioredis
-from common import JobStatus, QUEUES, PGCon, MAX_WORKER_THREADS, MAX_WORKER_JOBS, loop
+
+from common import JobStatus, QUEUES, MAX_WORKER_THREADS, MAX_WORKER_JOBS
 from .pdf import generate_pdf
 from .store import store_file
 
-pg_con = PGCon()
+loop = asyncio.get_event_loop()
 wkh2p_sema = Semaphore(value=MAX_WORKER_THREADS, loop=loop)
 worker_sema = Semaphore(value=MAX_WORKER_JOBS, loop=loop)
+
+
+class PGCon:
+    def __init__(self):
+        self._pool = loop.run_until_complete(create_pool(DB_DSN, minsize=2, maxsize=10))
+
+    @asyncio.coroutine
+    def execute(self, *args, **kwargs):
+        with (yield from self._pool) as conn:
+            cur = yield from conn.cursor()
+            yield from cur.execute(*args, **kwargs)
+            return cur
+
+pg_con = PGCon()
 
 
 async def job_in_progress(job_id):
@@ -69,8 +85,10 @@ async def work(raw_data):
     worker_sema.release()
 
 
-async def work_loop():
+async def work_loop(loop):
     # TODO deal with SIGTERM gracefully
+    if loop is None:
+        loop = asyncio.get_event_loop()
     redis = await aioredis.create_redis(('localhost', 6379), loop=loop)
     try:
         while True:

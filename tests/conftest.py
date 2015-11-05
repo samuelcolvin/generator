@@ -12,7 +12,7 @@ from aiohttp import web
 PROJECT_DIR = os.path.abspath(os.path.join(os.path.basename(__file__), os.pardir, 'gen'))
 sys.path.append(PROJECT_DIR)
 
-from api import views
+from api.views import APIController
 
 
 @pytest.fixture
@@ -47,9 +47,9 @@ def create_server(loop, unused_port):
         nonlocal app, handler, srv
         # TODO use proper app
         app = web.Application(loop=loop)
+        APIController(app)
         port = unused_port()
 
-        app.router.add_route('POST', '/generate', views.generate_pdf)
         handler = app.make_handler(debug=debug, keep_alive_on=False)
         srv = await loop.create_server(handler, '127.0.0.1', port, ssl=ssl_ctx)
         if ssl_ctx:

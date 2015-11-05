@@ -1,12 +1,20 @@
 import pytest
-from aiohttp import web
 
 
 @pytest.mark.run_loop
-async def test_keepalive_two_requests_success(create_app_and_client):
-    app, client = await create_app_and_client(server_params={'debug': True})
-    resp1 = await client.post('/generate')
-    r = await resp1.read()
-    print(r)
+async def test_no_auth_header(create_app_and_client):
+    app, client = await create_app_and_client()
+    r = await client.post('/generate')
+    assert r.status == 400
+    content = await r.read()
+    assert content == b'No "Authorization" header found\n'
 
-    # assert 1 == len(client._session.connector._conns)
+
+@pytest.mark.run_loop
+async def test_bad_token(create_app_and_client):
+    app, client = await create_app_and_client()
+    headers = {'Authorization': 'Token 123'}
+    r = await client.post('/generate', headers=headers)
+    assert r.status == 403
+    content = await r.read()
+    assert content == b'Invalid Authorization token\n'

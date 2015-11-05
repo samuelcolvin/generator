@@ -1,3 +1,5 @@
+import os
+
 import aiohttp
 import boto
 from boto.s3.key import Key
@@ -16,7 +18,7 @@ def s3_conn():
 
 
 async def s3_store(job_id, org_code, file_name):
-    return await loop.run_in_executor(None, s3_store_blocking, job_id, org_code, file_name)
+    return await loop.run_in_executor(None, _s3_store_blocking, job_id, org_code, file_name)
 
 
 def _s3_store_blocking(job_id, org_code, file_name):
@@ -29,7 +31,7 @@ def _s3_store_blocking(job_id, org_code, file_name):
     k.set_contents_from_filename(file_name)
 
 
-def get_temporary_url(job_id, org_code)
+def get_temporary_url(job_id, org_code):
     key = os.path.join(org_code, job_id +'.pdf')
     url = s3_conn().generate_url(60, 'GET', bucket_name, key)
     return

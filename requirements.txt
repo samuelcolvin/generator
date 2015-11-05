@@ -3,6 +3,7 @@ aiohttp==0.18.3
 aiopg==0.7.0
 aioredis==0.2.4
 boto==2.38.0
+cchardet==1.0.0
 click==5.1
 django-extensions==1.5.7
 gunicorn==19.3.0
@@ -10,3 +11,4 @@ hiredis==0.2.0
 ipython==4.0.0
 pytest==2.8.2
 redis==2.10.3
+transliterate==1.7.4
