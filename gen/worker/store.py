@@ -1,10 +1,13 @@
 import os
+import asyncio
 
 import aiohttp
 import boto
 from boto.s3.key import Key
 
-from common import DEBUG, S3_KEY, S3_SECRET, loop
+from common import DEBUG, S3_KEY, S3_SECRET
+
+loop = asyncio.get_event_loop()  # FIXME
 
 async def fake_store(job_id, org_code, file_name):
     files = {'pdf_file': open(file_name, 'rb')}

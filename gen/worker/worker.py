@@ -6,11 +6,11 @@ from asyncio import Semaphore
 from aiopg.pool import create_pool
 import aioredis
 
-from common import JobStatus, QUEUES, MAX_WORKER_THREADS, MAX_WORKER_JOBS
+from common import JobStatus, QUEUES, MAX_WORKER_THREADS, MAX_WORKER_JOBS, DB_DSN
 from .pdf import generate_pdf
 from .store import store_file
 
-loop = asyncio.get_event_loop()
+loop = asyncio.get_event_loop()  # FIXME
 wkh2p_sema = Semaphore(value=MAX_WORKER_THREADS, loop=loop)
 worker_sema = Semaphore(value=MAX_WORKER_JOBS, loop=loop)
 
@@ -85,10 +85,8 @@ async def work(raw_data):
     worker_sema.release()
 
 
-async def work_loop(loop):
+async def work_loop():
     # TODO deal with SIGTERM gracefully
-    if loop is None:
-        loop = asyncio.get_event_loop()
     redis = await aioredis.create_redis(('localhost', 6379), loop=loop)
     try:
         while True:

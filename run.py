@@ -3,8 +3,8 @@ import os
 import sys
 import click
 
-THIS_DIR = os.path.basename(__file__)
-sys.path.append(THIS_DIR)
+THIS_DIR = os.path.dirname(__file__)
+sys.path.append(os.path.join(THIS_DIR, 'gen'))
 
 import worker.worker
 

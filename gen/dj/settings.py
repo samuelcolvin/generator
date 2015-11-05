@@ -1,7 +1,9 @@
 import os
-from common import DATABASE, DEBUG
+import sys
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+sys.path.append(os.path.dirname(BASE_DIR))
+from common import DATABASE, DEBUG
 
 SECRET_KEY = 'akt&bday!w=h^x_-cmd50_lc-=yj0(b)f-j$b-l3(_b71y=dq9'
 
