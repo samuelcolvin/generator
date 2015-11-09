@@ -5,7 +5,7 @@ import asyncio
 from json import JSONDecodeError
 
 import aioredis
-from aiohttp import web
+from aiohttp import web, Response
 from aiopg.pool import create_pool
 
 from common import JobStatus, QUEUE_HIGH, DB_DSN
@@ -43,6 +43,7 @@ class APIController:
         self.app = app
         self.loop = app._loop
         self.add_routes()
+        self.add_middleware()
 
     def _til_complete(self, future):
         return self.loop.run_until_complete(future)
@@ -50,34 +51,43 @@ class APIController:
     def add_routes(self):
         self.app.router.add_route('POST', '/generate', self.generate_pdf)
 
+    def add_middleware(self):
+        async def auth_middleware_factory(app, handler):
+            async def auth_middleware(request):
+                log_extra = {'ip': get_ip(request)}
+                if 'Authorization' not in request.headers:
+                    logger.info('bad request: %s', 'no auth header', extra=log_extra)
+                    return bad_request_response('No "Authorization" header found')
+
+                token = request.headers['Authorization'].replace('Token ', '')
+                organisation = await self.check_token(token)
+                if organisation is None:
+                    logger.info('forbidden request: invalid token "%s"', token, extra=log_extra)
+                    return web.HTTPForbidden(body='Invalid Authorization token\n'.encode())
+                request.organisation = organisation
+                request.log_extra = log_extra
+                return await handler(request)
+            return auth_middleware
+
+        self.app._middlewares = [auth_middleware_factory]
+
     async def generate_pdf(self, request):
-        log_extra = {'ip': get_ip(request)}
-        if 'Authorization' not in request.headers:
-            logger.info('bad request: %s', 'no auth header', extra=log_extra)
-            return bad_request_response('No "Authorization" header found')
-
-        token = request.headers['Authorization'].replace('Token ', '')
-        organisation = await self.check_token(token)
-        if organisation is None:
-            logger.info('forbidden request: invalid token "%s"', token, extra=log_extra)
-            return web.HTTPForbidden(body='Invalid Authorization token\n'.encode())
-
         data = await request.content.read()
         data = data.decode()
         try:
             obj = json.loads(data)
         except JSONDecodeError as e:
-            logger.info('bad request: %s', 'invalid json', extra=log_extra)
+            logger.info('bad request: %s', 'invalid json', extra=request.log_extra)
             return bad_request_response('Error Decoding JSON: {}'.format(e))
 
         if 'html' not in obj:
-            logger.info('bad request: %s', 'no html', extra=log_extra)
+            logger.info('bad request: %s', 'no html', extra=request.log_extra)
             return bad_request_response('"html" not found in request JSON: "{}"'.format(data))
 
-        job_id = await self.create_job(org_id=organisation)
+        job_id = await self.create_job(org_id=request.organisation)
         await self.add_to_queue(job_id, obj['html'])
 
-        logger.info('good request: job created, %s', job_id, extra=log_extra)
+        logger.info('good request: job created, %s', job_id, extra=request.log_extra)
         response = {'job_id': job_id, 'status': JobStatus.STATUS_PENDING}
         return web.Response(body=json_bytes(response, True), status=201, content_type='application/json')
 
