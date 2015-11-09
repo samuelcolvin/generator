@@ -62,15 +62,17 @@ class APIController:
             logger.info('forbidden request: invalid token "%s"', token, extra=log_extra)
             return web.HTTPForbidden(body='Invalid Authorization token\n'.encode())
 
+        data = await request.content.read()
+        data = data.decode()
         try:
-            obj = await request.json()
+            obj = json.loads(data)
         except JSONDecodeError as e:
             logger.info('bad request: %s', 'invalid json', extra=log_extra)
             return bad_request_response('Error Decoding JSON: {}'.format(e))
 
         if 'html' not in obj:
             logger.info('bad request: %s', 'no html', extra=log_extra)
-            return bad_request_response('"html" not found in request JSON: {}'.format(obj))
+            return bad_request_response('"html" not found in request JSON: "{}"'.format(data))
 
         job_id = await self.create_job(org_id=organisation)
         await self.add_to_queue(job_id, obj['html'])

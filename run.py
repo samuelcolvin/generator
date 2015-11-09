@@ -6,7 +6,7 @@ import click
 THIS_DIR = os.path.dirname(__file__)
 sys.path.append(os.path.join(THIS_DIR, 'gen'))
 
-import worker.worker
+from worker import Worker
 
 
 @click.group()
@@ -17,7 +17,7 @@ def cli():
 @cli.command()
 def run_worker():
     click.echo('Running worker...')
-    worker.worker.run_worker()
+    Worker().run_forever()
 
 
 @cli.command()

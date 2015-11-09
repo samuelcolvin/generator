@@ -44,3 +44,13 @@ async def test_good_token_good_json(client, db):
     assert r.status == 201
     content = await r.json()
     assert sorted(content.keys()) == ['job_id', 'status']
+
+
+async def test_good_token_good_json_missing_html(client, db):
+    org = Organisation.objects.create(name='test organisation')
+    APIKey.objects.create(org=org, key='123')
+    headers = {'Authorization': 'Token 123'}
+    r = await client.post('/generate', data='{"other": "<h1>hello</h1>"}', headers=headers)
+    assert r.status == 400
+    content = await r.read()
+    assert content == b'"html" not found in request JSON: "{"other": "<h1>hello</h1>"}"\n'

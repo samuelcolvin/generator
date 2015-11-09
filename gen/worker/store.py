@@ -25,8 +25,7 @@ async def s3_store(job_id, org_code, file_name):
 
 
 def _s3_store_blocking(job_id, org_code, file_name):
-    # TODO this method needs altering to be properly asyncronous once a good
-    # boto asyncronous library is available
+    # TODO this method needs altering to be properly asynchronous once a good boto asynchronous library is available
     bucket = 'pdf-gen-test'
     key = os.path.join(org_code, job_id +'.pdf')
     k = Key(s3_conn().get_bucket(bucket))
@@ -36,7 +35,7 @@ def _s3_store_blocking(job_id, org_code, file_name):
 
 def get_temporary_url(job_id, org_code):
     key = os.path.join(org_code, job_id +'.pdf')
-    url = s3_conn().generate_url(60, 'GET', bucket_name, key)
+    url = s3_conn().generate_url(600, 'GET', bucket_name, key)
     return
 
 

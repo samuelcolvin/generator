@@ -4,7 +4,7 @@ import logging
 from aiohttp import web
 
 from common import BASE_DIR
-
+from .views import get_ip, json_bytes
 
 logger = logging.getLogger('fake_storage')
 logger.setLevel(logging.INFO)

@@ -45,11 +45,17 @@ class JobStatus:
         (STATUS_COMPLETE, 'complete'),
     )
 
-stream_handler = logging.StreamHandler()
-stream_handler.setLevel(logging.DEBUG)
-stream_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(ip)s %(levelname)s - %(message)s'))
+html_handler = logging.StreamHandler()
+html_handler.setLevel(logging.DEBUG)
+html_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(ip)s %(levelname)s - %(message)s'))
 http_logger = logging.getLogger('http')
-http_logger.addHandler(stream_handler)
+http_logger.addHandler(html_handler)
+
+worker_handler = logging.StreamHandler()
+worker_handler.setLevel(logging.DEBUG)
+worker_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s for %(org)s'))
+worker_logger = logging.getLogger('worker')
+worker_logger.addHandler(worker_handler)
 
 try:
     from localsettings import *
