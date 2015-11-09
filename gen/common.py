@@ -1,13 +1,15 @@
 import os
+import sys
 import logging
 
 DEBUG = True
+TESTING = 'py.test' in ' '.join(sys.argv)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 DATABASE = {
     'ENGINE': 'django.db.backends.postgresql_psycopg2',
-    'NAME': 'generator',
+    'NAME': 'generator_test' if TESTING else 'generator',
     'USER': 'postgres',
     'PASSWORD': 'waffle',
     'HOST': 'localhost',

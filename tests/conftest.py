@@ -5,23 +5,41 @@ import aiohttp
 import gc
 import pytest
 import socket
+from unittest import mock
 
-
+import psycopg2
 from aiohttp import web
 
 PROJECT_DIR = os.path.abspath(os.path.join(os.path.basename(__file__), os.pardir, 'gen'))
 sys.path.append(PROJECT_DIR)
 
 from api.views import APIController
+from common import DATABASE
+
+
+def pytest_pycollect_makeitem(collector, name, obj):
+    if collector.funcnamefilter(name) and callable(obj):
+        return list(collector._genfunctions(name, obj))
+
+
+def pytest_pyfunc_call(pyfuncitem):
+    """
+    Run asyncio marked test functions in an event loop instead of a normal
+    function call.
+    """
+    funcargs = pyfuncitem.funcargs
+    if 'loop' in funcargs:
+        loop = funcargs['loop']
+        testargs = {arg: funcargs[arg] for arg in pyfuncitem._fixtureinfo.argnames}
+        loop.run_until_complete(pyfuncitem.obj(**testargs))
+        return True
 
 
 @pytest.fixture
-def unused_port():
-    def f():
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind(('127.0.0.1', 0))
-            return s.getsockname()[1]
-    return f
+def port():
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind(('127.0.0.1', 0))
+        return s.getsockname()[1]
 
 
 @pytest.yield_fixture
@@ -39,14 +57,13 @@ def loop(request):
 
 
 @pytest.yield_fixture
-def server(loop, unused_port):
+def server(loop, port):
     app = handler = srv = None
 
     async def create(*, debug=False, ssl_ctx=None, proto='http'):
         nonlocal app, handler, srv
         app = web.Application(loop=loop)
         APIController(app)
-        port = unused_port()
 
         handler = app.make_handler(debug=debug, keep_alive_on=False)
         srv = await loop.create_server(handler, '127.0.0.1', port, ssl=ssl_ctx)
@@ -105,20 +122,53 @@ def client(loop, server):
     client.close()
 
 
-@pytest.mark.tryfirst
-def pytest_pycollect_makeitem(collector, name, obj):
-    if collector.funcnamefilter(name) and callable(obj):
-        return list(collector._genfunctions(name, obj))
+def pytest_configure():
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gen.dj.settings')
+    import django
+    django.setup()
 
 
-@pytest.mark.tryfirst
-def pytest_pyfunc_call(pyfuncitem):
-    """
-    Run asyncio marked test functions in an event loop instead of a normal
-    function call.
-    """
-    funcargs = pyfuncitem.funcargs
-    loop = funcargs['loop']
-    testargs = {arg: funcargs[arg] for arg in pyfuncitem._fixtureinfo.argnames}
-    loop.run_until_complete(pyfuncitem.obj(**testargs))
-    return True
+# @pytest.fixture(scope='session')
+# def _django_test_environment(request):
+#     from django.conf import settings
+#     from django.test.utils import setup_test_environment, teardown_test_environment
+#     settings.DEBUG = False
+#     setup_test_environment()
+#     request.addfinalizer(teardown_test_environment)
+
+
+TEMPLATE_DB_NAME = 'generator_test_template'
+
+
+@pytest.fixture(scope='session')
+def db_setup(request):
+    conn = psycopg2.connect('user={USER} password={PASSWORD} host={HOST} port={PORT}'.format(**DATABASE))
+    conn.autocommit = True
+    cur = conn.cursor()
+    cur.execute('DROP DATABASE IF EXISTS {}'.format(TEMPLATE_DB_NAME))
+    cur.execute('CREATE DATABASE {}'.format(TEMPLATE_DB_NAME))
+    cur.close()
+    conn.close()
+
+    with mock.patch.dict('common.DATABASE', {'NAME': TEMPLATE_DB_NAME}):
+        from django.core.management import call_command
+        from django.db import connections
+        print('db name:', connections.databases['default']['NAME'])
+        call_command('migrate')
+
+
+@pytest.fixture(scope='function')
+def db(request, db_setup):
+    from common import DATABASE
+    from django.db import connection
+    connection.close()
+    conn = psycopg2.connect('user={USER} password={PASSWORD} host={HOST} port={PORT}'.format(**DATABASE))
+    conn.autocommit = True
+    cur = conn.cursor()
+    db_name = DATABASE['NAME']
+    cur.execute("SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity\n"
+                "WHERE datname='{}' AND pid <> pg_backend_pid();".format(db_name))
+    cur.execute('DROP DATABASE IF EXISTS {}'.format(db_name))
+    cur.execute('CREATE DATABASE {} WITH TEMPLATE {}'.format(db_name, TEMPLATE_DB_NAME))
+    cur.close()
+    conn.close()
