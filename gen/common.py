@@ -2,8 +2,8 @@ import os
 import sys
 import logging
 
-DEBUG = True
 TESTING = 'py.test' in ' '.join(sys.argv)
+DEBUG = not TESTING
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -53,7 +53,8 @@ http_logger.addHandler(html_handler)
 
 worker_handler = logging.StreamHandler()
 worker_handler.setLevel(logging.DEBUG)
-worker_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s for %(org)s'))
+worker_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s '
+                                              '%(job_id)s for %(org)s'))
 worker_logger = logging.getLogger('worker')
 worker_logger.addHandler(worker_handler)
 

@@ -21,8 +21,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Job',
             fields=[
-                ('timestamp_created', models.DateTimeField(auto_created=True)),
                 ('id', models.UUIDField(primary_key=True, db_index=True, editable=False, serialize=False, default=uuid.uuid4)),
+                ('timestamp_created', models.DateTimeField(blank=True)),
                 ('timestamp_started', models.DateTimeField(null=True, blank=True)),
                 ('timestamp_complete', models.DateTimeField(null=True, blank=True)),
                 ('status', models.CharField(max_length=20, default='pending', choices=[('pending', 'pending'), ('in_progress', 'in_progress'), ('complete', 'complete')])),

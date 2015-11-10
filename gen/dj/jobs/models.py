@@ -60,7 +60,7 @@ class APIKey(models.Model):
 class Job(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, db_index=True)
     org = models.ForeignKey(Organisation)
-    timestamp_created = models.DateTimeField(auto_created=True)
+    timestamp_created = models.DateTimeField(blank=True)
     timestamp_started = models.DateTimeField(null=True, blank=True)
     timestamp_complete = models.DateTimeField(null=True, blank=True)
     status = models.CharField(choices=JobStatus.STATUS_CHOICES, max_length=20, default=JobStatus.STATUS_PENDING)

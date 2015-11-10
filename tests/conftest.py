@@ -15,6 +15,7 @@ sys.path.append(PROJECT_DIR)
 
 from api.views import APIController
 from common import DATABASE
+from worker import Worker
 
 
 def pytest_pycollect_makeitem(collector, name, obj):
@@ -24,7 +25,7 @@ def pytest_pycollect_makeitem(collector, name, obj):
 
 def pytest_pyfunc_call(pyfuncitem):
     """
-    Run asyncio marked test functions in an event loop instead of a normal
+    Run asyncio test functions in an event loop instead of a normal
     function call.
     """
     funcargs = pyfuncitem.funcargs
@@ -46,6 +47,7 @@ def port():
 def loop(request):
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(None)
+    loop.set_debug(False)
 
     yield loop
 
@@ -85,8 +87,8 @@ def server(loop, port):
 
 
 class Client:
-    def __init__(self, session, url):
-        self._session = session
+    def __init__(self, loop, url):
+        self._session = aiohttp.ClientSession(loop=loop)
         if not url.endswith('/'):
             url += '/'
         self.url = url
@@ -116,7 +118,7 @@ class Client:
 @pytest.yield_fixture
 def client(loop, server):
     app, url = loop.run_until_complete(server())
-    client = Client(aiohttp.ClientSession(loop=loop), url=url)
+    client = Client(loop, url=url)
     yield client
 
     client.close()
@@ -126,16 +128,6 @@ def pytest_configure():
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gen.dj.settings')
     import django
     django.setup()
-
-
-# @pytest.fixture(scope='session')
-# def _django_test_environment(request):
-#     from django.conf import settings
-#     from django.test.utils import setup_test_environment, teardown_test_environment
-#     settings.DEBUG = False
-#     setup_test_environment()
-#     request.addfinalizer(teardown_test_environment)
-
 
 TEMPLATE_DB_NAME = 'generator_test_template'
 
@@ -172,3 +164,22 @@ def db(request, db_setup):
     cur.execute('CREATE DATABASE {} WITH TEMPLATE {}'.format(db_name, TEMPLATE_DB_NAME))
     cur.close()
     conn.close()
+
+
+@pytest.yield_fixture
+def redis():
+    import redis
+    rcon = redis.Redis()
+    yield rcon
+
+
+@pytest.yield_fixture
+def worker(loop):
+    worker = Worker(loop)
+    task = loop.create_task(worker.work_loop())
+
+    yield worker
+
+    worker.redis.close()
+    task.cancel()
+
