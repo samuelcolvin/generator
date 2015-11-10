@@ -58,3 +58,4 @@ target/
 .idea
 fake_file_store
 gen/localsettings.py
+docker/worker/deps/
