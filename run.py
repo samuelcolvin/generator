@@ -15,16 +15,8 @@ def cli():
 
 
 @cli.command()
-def run_worker():
-    click.echo('Running worker...')
+def worker():
     Worker().run_forever()
-
-
-@cli.command()
-def test_worker():
-    import redis
-    rcon = redis.Redis()
-    rcon.rpush('queue:high', b'{"a": 1}')
 
 
 if __name__ == '__main__':

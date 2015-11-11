@@ -32,3 +32,7 @@ https://github.com/sameersbn/docker-squid
 To install the virtualenv:
 
     virtualenv -p /usr/bin/python3.5 env
+
+To build the docker image:
+
+    docker build -t gen:v1 .

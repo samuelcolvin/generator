@@ -4,6 +4,7 @@ import logging
 
 TESTING = 'py.test' in ' '.join(sys.argv)
 DEBUG = not TESTING
+DOCKER = 'DOCKER' in os.environ
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -12,12 +13,14 @@ DATABASE = {
     'NAME': 'generator_test' if TESTING else 'generator',
     'USER': 'postgres',
     'PASSWORD': 'waffle',
-    'HOST': 'localhost',
-    'PORT': '',
+    'HOST': os.getenv('POSTGRES_PORT_5432_TCP_ADDR', 'localhost'),
+    'PORT': os.getenv('POSTGRES_PORT_5432_TCP_PORT', ''),
     'CONN_MAX_AGE': None
 }
 
 DB_DSN = 'dbname={NAME} user={USER} password={PASSWORD} host={HOST} port={PORT}'.format(**DATABASE)
+
+REDIS_HOST = os.getenv('REDIS_PORT_6379_TCP_ADDR', 'localhost')
 
 QUEUE_HIGH = 'queue:high'
 QUEUE_MEDIUM = 'queue:medium'
@@ -47,14 +50,13 @@ class JobStatus:
 
 html_handler = logging.StreamHandler()
 html_handler.setLevel(logging.DEBUG)
-html_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(ip)s %(levelname)s - %(message)s'))
+html_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(ip)s - %(message)s'))
 http_logger = logging.getLogger('http')
 http_logger.addHandler(html_handler)
 
 worker_handler = logging.StreamHandler()
 worker_handler.setLevel(logging.DEBUG)
-worker_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s '
-                                              '%(job_id)s for %(org)s'))
+worker_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(message)s'))
 worker_logger = logging.getLogger('worker')
 worker_logger.addHandler(worker_handler)
 

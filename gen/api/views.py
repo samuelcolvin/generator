@@ -5,10 +5,10 @@ import asyncio
 from json import JSONDecodeError
 
 import aioredis
-from aiohttp import web, Response
+from aiohttp import web
 from aiopg.pool import create_pool
 
-from common import JobStatus, QUEUE_HIGH, DB_DSN
+from common import JobStatus, QUEUE_HIGH, DB_DSN, REDIS_HOST
 
 logger = logging.getLogger('http')
 logger.setLevel(logging.INFO)
@@ -114,7 +114,7 @@ class APIController:
             return cur
 
     async def add_to_queue(self, job_id, html):
-        self.redis = self.redis or await aioredis.create_redis(('localhost', 6379), loop=self.loop)
+        self.redis = self.redis or await aioredis.create_redis((REDIS_HOST, 6379), loop=self.loop)
         data = {
             'job_id': job_id,
             'html': html
