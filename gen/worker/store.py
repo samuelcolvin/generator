@@ -1,19 +1,28 @@
 import os
 import asyncio
+import logging
 
-import aiohttp
 import boto
 from boto.s3.key import Key
 
-from common import DEBUG, S3_KEY, S3_SECRET
+from common import DEBUG, S3_KEY, S3_SECRET, BASE_DIR
+
+logger = logging.getLogger('worker')
+logger.setLevel(logging.DEBUG)
 
 loop = asyncio.get_event_loop()  # FIXME
 
 async def fake_store(job_id, org_code, file_name):
-    files = {'pdf_file': open(file_name, 'rb')}
-    async with aiohttp.post('http://localhost:8000/fakestorage', data=files) as r:
-        data = await r.json()
-        return data['url']
+    file_storage_path = os.path.abspath(os.path.join(BASE_DIR, '..', 'fake_file_store', org_code))
+    if not os.path.exists(file_storage_path):
+        os.makedirs(file_storage_path)
+
+    file_path = os.path.join(file_storage_path, '%s.pdf' % job_id)
+    with open(file_name, 'rb') as src:
+        with open(file_path, 'wb') as dst:
+            dst.write(src.read())
+
+    logger.info('fake file stored to: %s', file_path)
 
 
 def s3_conn():

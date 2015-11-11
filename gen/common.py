@@ -1,12 +1,15 @@
 import os
 import sys
-import logging
+
+from logs import setup_log_handlers
 
 TESTING = 'py.test' in ' '.join(sys.argv)
 DEBUG = not TESTING
 DOCKER = 'DOCKER' in os.environ
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+setup_log_handlers()
 
 DATABASE = {
     'ENGINE': 'django.db.backends.postgresql_psycopg2',
@@ -47,18 +50,6 @@ class JobStatus:
         (STATUS_IN_PROGRESS, 'in_progress'),
         (STATUS_COMPLETE, 'complete'),
     )
-
-html_handler = logging.StreamHandler()
-html_handler.setLevel(logging.DEBUG)
-html_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(ip)s - %(message)s'))
-http_logger = logging.getLogger('http')
-http_logger.addHandler(html_handler)
-
-worker_handler = logging.StreamHandler()
-worker_handler.setLevel(logging.DEBUG)
-worker_handler.setFormatter(logging.Formatter('%(asctime)s - %(name)s - %(message)s'))
-worker_logger = logging.getLogger('worker')
-worker_logger.addHandler(worker_handler)
 
 try:
     from localsettings import *

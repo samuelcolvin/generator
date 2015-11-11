@@ -1,0 +1,20 @@
+api:
+  image: gen:v1
+  ports:
+   - "8000:8000"
+  command: ./gunicorn.sh
+  links:
+   - redis
+   - postgres
+worker:
+  image: gen:v1
+  command: ./run_worker.py
+  links:
+   - redis
+   - postgres
+redis:
+  image: redis
+postgres:
+  image: postgres
+  environment:
+    - POSTGRES_PASSWORD=waffle

@@ -119,4 +119,4 @@ class APIController:
             'job_id': job_id,
             'html': html
         }
-        self.redis.rpush(QUEUE_HIGH, json_bytes(data))
+        await self.redis.rpush(QUEUE_HIGH, json_bytes(data))

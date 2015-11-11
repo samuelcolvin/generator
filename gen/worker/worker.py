@@ -32,24 +32,26 @@ class Worker:
         self.loop.run_until_complete(self.work_loop())
 
     async def work_loop(self):
-        logger.info('Worker started...')
         # TODO deal with SIGTERM gracefully
+        logger.debug('Connecting to redis on: "%s"', REDIS_HOST)
         self.redis = await aioredis.create_redis((REDIS_HOST, 6379), loop=self.loop)
+        logger.info('Worker started...')
         try:
             while True:
                 await self.worker_sema.acquire()
                 queue, data = await self.redis.blpop(*QUEUES)
-                asyncio.ensure_future(self.work_handler(data), loop=self.loop)
+                asyncio.ensure_future(self.work_handler(queue, data), loop=self.loop)
         finally:
             self.redis.close()
 
-    async def work_handler(self, raw_data):
+    async def work_handler(self, queue, raw_data):
         try:
-            await self.work(raw_data)
+            await self.work(queue, raw_data)
         except:
+            logger.error('error processing job: %s', sys.exc_info()[1])
             self.exc_info = sys.exc_info()
 
-    async def work(self, raw_data):
+    async def work(self, queue_raw, raw_data):
         """
         Do job, data shape:
         {
@@ -59,14 +61,17 @@ class Worker:
             OR
             'html': HTML to generate pdf for
         }
+        :param queue_raw: queue name bytes
         :param raw_data: json bytes
         :return:
         """
-        text = raw_data.decode('utf8')
-        data = json.loads(text)
+        queue = queue_raw.decode()
+        data = raw_data.decode()
+        logger.debug('starting job from queue "%s" with data "%s"', queue, data)
+        data = json.loads(data)
         job_id = data['job_id']
         org_code = await self.get_organisation_code(job_id)
-        logger.info('starting job - %s for %s', (job_id, org_code))
+        logger.info('starting job - %s for %s', job_id, org_code)
         await self.job_in_progress(job_id)
         content = data.get('content')
         if content:
@@ -77,7 +82,7 @@ class Worker:
         await self.wkh2p_sema.acquire()
         pdf_file = await self.loop.run_in_executor(None, generate_pdf, html)
         self.wkh2p_sema.release()
-        logger.info('pdf generated - %s for %s', (job_id, org_code))
+        logger.info('pdf generated - %s for %s', job_id, org_code)
 
         # the temporary file is not automatically deleted, so we need to make sure we do it here
         try:
@@ -86,7 +91,7 @@ class Worker:
         finally:
             os.remove(pdf_file)
         await self.job_finished(job_id, html, file_size)
-        logger.info('finishing job - %s for %s', (job_id, org_code))
+        logger.info('finishing job - %s for %s', job_id, org_code)
         self.worker_sema.release()
 
     async def job_in_progress(self, job_id):
