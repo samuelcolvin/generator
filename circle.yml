@@ -8,12 +8,11 @@ machine:
 # requirements are installed by default
 dependencies:
   post:
-    - pip install -r test_requirements.txt
+    - pip install -r requirements_dev.txt
 
 test:
   pre:
-    - mv test_extras/coveragerc .coveragerc
-    - pip install coverage flake8
+    - mv tests/coveragerc .coveragerc
   override:
     - ./tests/lint.sh
     - py.test tests/async_tests/

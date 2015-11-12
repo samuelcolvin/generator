@@ -1,0 +1,18 @@
+[run]
+source = gen
+branch = True
+concurrency = multiprocessing
+omit =
+    */migrations/*.py
+
+parallel = True
+
+[report]
+exclude_lines =
+    pragma: no cover
+
+    def __repr__
+    def __str__
+
+    raise AssertionError
+    raise NotImplementedError

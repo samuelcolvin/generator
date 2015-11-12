@@ -1,0 +1,5 @@
+coverage
+codecov
+flake8
+pytest
+pytest-mock

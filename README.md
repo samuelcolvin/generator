@@ -1,5 +1,6 @@
 # generator
 
+[![Circle CI](https://circleci.com/gh/samuelcolvin/generator/tree/master.svg?style=svg)](https://circleci.com/gh/samuelcolvin/generator/tree/master)
 
 https://github.com/jettify/aiobotocore
 https://pypi.python.org/pypi/aio-s3/0.1
