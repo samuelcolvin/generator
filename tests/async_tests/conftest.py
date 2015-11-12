@@ -10,7 +10,7 @@ from unittest import mock
 import psycopg2
 from aiohttp import web
 
-PROJECT_DIR = os.path.abspath(os.path.join(os.path.basename(__file__), os.pardir, 'gen'))
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../gen'))
 sys.path.append(PROJECT_DIR)
 
 from api.views import APIController
@@ -125,7 +125,7 @@ def client(loop, server):
 
 
 def pytest_configure():
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'gen.dj.settings')
+    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'dj.settings')
     import django
     django.setup()
 

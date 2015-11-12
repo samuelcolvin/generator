@@ -1,5 +1,6 @@
 FROM ubuntu:15.10
 
+# TODO: split into multiple images and remove unneeded packages (eg. wget, gdebi) to reduce size of images
 MAINTAINER Samuel Colvin <s@muelcolvin.com>
 ENV DEBIAN_FRONTEND noninteractive
 

@@ -52,6 +52,6 @@ class JobStatus:
     )
 
 try:
-    from localsettings import *
+    from localsettings import *  # NOQA
 except ImportError:
     pass

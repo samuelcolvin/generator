@@ -1,0 +1,24 @@
+machine:
+  python:
+    version: 3.5.0
+  services:
+    - postgresql
+    - redis
+
+# requirements are installed by default
+dependencies:
+  post:
+    - pip install -r test_requirements.txt
+
+test:
+  pre:
+    - mv test_extras/coveragerc .coveragerc
+    - pip install coverage flake8
+  override:
+    - ./tests/lint.sh
+    - py.test tests/async_tests/
+    - coverage run manage_django.py check
+    - coverage run manage_django.py test --noinput
+#    - ./manage_django.py collectstatic --noinput --verbosity 0
+  post:
+    - coverage combine
