@@ -1,19 +1,17 @@
 # generator
 
-[![Circle CI](https://circleci.com/gh/samuelcolvin/generator/tree/master.svg?style=svg)](https://circleci.com/gh/samuelcolvin/generator/tree/master)
+[![Circle CI](https://circleci.com/gh/samuelcolvin/generator/tree/master.svg?circle-token=b924665daf07d607e259a94d0d3cbe3cd4671c5f)](https://circleci.com/gh/samuelcolvin/generator/tree/master)
 
 https://github.com/jettify/aiobotocore
 https://pypi.python.org/pypi/aio-s3/0.1
 
 https://github.com/sameersbn/docker-squid
 
-* working with docker.
 * environments, eg. collection of files used to gen:
   * static files
   * mustache templating
   * jinja2 templating inc. imported files
   * footer/header integration. How do we do this most clearly?
-* S3 support
 * django interface for users
 * best way to deal with dynamic images in documents? other upload, url encoded.
 * remote ftp/webhook/S3 support to return PDF docs.
