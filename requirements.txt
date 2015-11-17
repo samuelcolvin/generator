@@ -6,6 +6,7 @@ boto==2.38.0
 cchardet==1.0.0
 click==5.1
 django-extensions==1.5.9
+grablib==0.1.9
 gunicorn==19.3.0
 hiredis==0.2.0
 ipython==4.0.0

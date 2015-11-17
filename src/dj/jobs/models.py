@@ -7,6 +7,7 @@ from transliterate import translit
 from django.db import models
 from django.dispatch import receiver
 from django.template.defaultfilters import slugify
+from django.utils.translation import ugettext_lazy as _
 
 from common import JobStatus
 
@@ -17,6 +18,10 @@ class Organisation(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        verbose_name = _('Organisation')
+        verbose_name_plural = _('Organisations')
 
 
 def smart_slugify(name, min_length=3):
@@ -70,3 +75,7 @@ class Job(models.Model):
 
     def __str__(self):
         return '{}: {}'.format(self.org, self.id)
+
+    class Meta:
+        verbose_name = _('Job')
+        verbose_name_plural = _('Jobs')

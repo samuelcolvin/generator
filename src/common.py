@@ -47,7 +47,7 @@ class JobStatus:
     STATUS_COMPLETE = 'complete'
     STATUS_CHOICES = (
         (STATUS_PENDING, 'pending'),
-        (STATUS_IN_PROGRESS, 'in_progress'),
+        (STATUS_IN_PROGRESS, 'in progress'),
         (STATUS_COMPLETE, 'complete'),
     )
 

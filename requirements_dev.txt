@@ -3,3 +3,4 @@ codecov
 flake8
 pytest
 pytest-mock
+-e git+https://github.com/samuelcolvin/django-crud.git@master#egg=django-crud-0.1.0

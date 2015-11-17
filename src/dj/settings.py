@@ -19,6 +19,9 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_jinja',
+    'bootstrapform_jinja',
+    'django_crud',
 
     'django_extensions',
 
@@ -38,18 +41,33 @@ MIDDLEWARE_CLASSES = (
 
 ROOT_URLCONF = 'dj.urls'
 
+context_processors = (
+    'django.template.context_processors.debug',
+    'django.template.context_processors.request',
+    'django.contrib.auth.context_processors.auth',
+    'django.contrib.messages.context_processors.messages',
+    'django_crud.context.crud_context',
+)
+
+BASE_TEMPLATE = 'base.jinja'
+
 TEMPLATES = [
+    {
+        'BACKEND': 'django_jinja.backend.Jinja2',
+        'APP_DIRS': True,
+        'OPTIONS': {
+            'match_extension': '.jinja',
+            'trim_blocks': True,
+            'lstrip_blocks': True,
+            'context_processors': context_processors
+        },
+    },
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
+            'context_processors': context_processors
         },
     },
 ]
