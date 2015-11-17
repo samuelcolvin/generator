@@ -4,7 +4,7 @@ import sys
 import click
 
 THIS_DIR = os.path.dirname(__file__)
-sys.path.append(os.path.join(THIS_DIR, 'gen'))
+sys.path.append(os.path.join(THIS_DIR, 'src'))
 
 from worker import Worker
 

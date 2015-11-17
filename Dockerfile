@@ -19,7 +19,7 @@ ADD requirements.txt /src/requirements.txt
 RUN python3.5 /usr/bin/pip3 install -r /src/requirements.txt
 
 ENV UPDATE 1
-COPY gen/ /src/gen/
+COPY src/ /src/
 COPY docker_cmds/ /src/
 
 WORKDIR /src/
