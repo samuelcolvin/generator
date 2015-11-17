@@ -10,7 +10,7 @@ from unittest import mock
 import psycopg2
 from aiohttp import web
 
-PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../gen'))
+PROJECT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src'))
 sys.path.append(PROJECT_DIR)
 
 from api.views import APIController
