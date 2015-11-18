@@ -1,3 +1,4 @@
 */__pycache__
 *.py[cod]
-gen/.cache
+src/.cache
+src/dj/static/libs

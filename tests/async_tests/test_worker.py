@@ -5,7 +5,9 @@ import json.decoder
 from django.utils import timezone
 
 from common import QUEUE_HIGH
-from dj.jobs.models import Organisation, Job
+from dj.orgs.models import Organisation
+from dj.resources.models import Template
+from dj.jobs.models import Job
 
 
 async def test_run_worker(worker):
@@ -21,7 +23,8 @@ async def test_simple_job(redis, db, worker, mocker):
             file_content = f.read()
     mocker.patch('worker.store.s3_store', side_effect=fake_s3_store)
     org = Organisation.objects.create(name='test organisation')
-    job = Job.objects.create(org=org, timestamp_created=timezone.now())
+    template = Template.objects.create(org=org)
+    job = Job.objects.create(template=template, timestamp_created=timezone.now())
     data = '{"job_id": "%s", "html": "<h1>hello</h1>"}' % job.id
     redis.rpush(QUEUE_HIGH, data.encode())
     for i in range(10):

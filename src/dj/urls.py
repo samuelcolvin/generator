@@ -1,9 +1,11 @@
 from django.conf.urls import include, url
 from django.contrib import admin
-from .jobs import views
+
+from .jobs.views import JobController
+from .organisations.views import OrganisationController
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
-    url(r'^orgs/', include(views.OrganisationController.as_views('org'))),
-    url(r'^jobs/', include(views.JobController.as_views('job'))),
+    url(r'^orgs/', include(OrganisationController.as_views('org'))),
+    url(r'^jobs/', include(JobController.as_views('job'))),
 ]

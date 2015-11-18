@@ -1,10 +1,6 @@
 from django_crud.controllers import RichController
 
-from .models import Organisation, Job
-
-
-class OrganisationController(RichController):
-    model = Organisation
+from .models import Job
 
 
 class JobController(RichController):

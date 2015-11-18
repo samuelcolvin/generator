@@ -80,11 +80,17 @@ class APIController:
             logger.info('bad request: %s', 'invalid json', extra=request.log_extra)
             return bad_request_response('Error Decoding JSON: {}'.format(e))
 
+        if 'template' not in obj:
+            logger.info('bad request: %s', 'no template', extra=request.log_extra)
+            return bad_request_response('"template" not found in request JSON: "{}"'.format(data))
+        # TODO: check template belongs to correct org, get template from name
+        template = obj['template']
+
         if 'html' not in obj:
             logger.info('bad request: %s', 'no html', extra=request.log_extra)
             return bad_request_response('"html" not found in request JSON: "{}"'.format(data))
 
-        job_id = await self.create_job(org_id=request.organisation)
+        job_id = await self.create_job(template)
         await self.add_to_queue(job_id, obj['html'])
 
         logger.info('good request: job created, %s', job_id, extra=request.log_extra)
@@ -92,15 +98,15 @@ class APIController:
         return web.Response(body=json_bytes(response, True), status=201, content_type='application/json')
 
     async def check_token(self, token):
-        cur = await self.execute('SELECT id FROM jobs_organisation INNER JOIN jobs_apikey ON '
-                                 '(jobs_organisation.id = jobs_apikey.org_id) WHERE '
-                                 'jobs_apikey.key = %s', [token])
+        cur = await self.execute('SELECT id FROM orgs_organisation '
+                                 'INNER JOIN orgs_apikey ON orgs_organisation.id = orgs_apikey.org_id WHERE '
+                                 'orgs_apikey.key = %s', [token])
         org = await cur.fetchone()
         return org
 
-    async def create_job(self, org_id):
+    async def create_job(self, template_id):
         id = str(uuid.uuid4())
-        await self.execute('INSERT INTO jobs_job (id, org_id) VALUES (%s, %s);', [id, org_id])
+        await self.execute('INSERT INTO jobs_job (id, template_id) VALUES (%s, %s);', [id, template_id])
         return id
 
     @asyncio.coroutine

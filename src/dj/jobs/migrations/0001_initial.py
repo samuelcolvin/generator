@@ -2,51 +2,35 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
-import dj.jobs.models
 import uuid
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
+        ('resources', '0001_initial'),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='APIKey',
-            fields=[
-                ('key', models.CharField(primary_key=True, max_length=40, default=dj.jobs.models.generate_key, unique=True, serialize=False)),
-            ],
-        ),
-        migrations.CreateModel(
             name='Job',
             fields=[
-                ('id', models.UUIDField(primary_key=True, db_index=True, editable=False, serialize=False, default=uuid.uuid4)),
-                ('timestamp_created', models.DateTimeField(blank=True)),
-                ('timestamp_started', models.DateTimeField(null=True, blank=True)),
-                ('timestamp_complete', models.DateTimeField(null=True, blank=True)),
-                ('status', models.CharField(max_length=20, default='pending', choices=[('pending', 'pending'), ('in_progress', 'in_progress'), ('complete', 'complete')])),
-                ('html', models.TextField(null=True, blank=True)),
-                ('file_size', models.PositiveIntegerField(null=True, blank=True)),
-                ('work_log', models.TextField(null=True, blank=True)),
+                ('id', models.UUIDField(editable=False, primary_key=True, serialize=False, default=uuid.uuid4, db_index=True)),
+                ('timestamp_created', models.DateTimeField(blank=True, verbose_name='Created')),
+                ('timestamp_started', models.DateTimeField(blank=True, verbose_name='Started', null=True)),
+                ('timestamp_complete', models.DateTimeField(blank=True, verbose_name='Complete', null=True)),
+                ('status', models.CharField(default='pending', verbose_name='Status', max_length=20,
+                                            choices=[('pending', 'pending'),
+                                                     ('in_progress', 'in progress'),
+                                                     ('complete', 'complete')])),
+                ('html', models.TextField(blank=True, null=True)),
+                ('file_size', models.PositiveIntegerField(blank=True, null=True)),
+                ('work_log', models.TextField(blank=True, null=True)),
+                ('template', models.ForeignKey(verbose_name='Template', to='resources.Template')),
             ],
-        ),
-        migrations.CreateModel(
-            name='Organisation',
-            fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('code', models.SlugField(max_length=63, unique=True, editable=False)),
-            ],
-        ),
-        migrations.AddField(
-            model_name='job',
-            name='org',
-            field=models.ForeignKey(to='jobs.Organisation'),
-        ),
-        migrations.AddField(
-            model_name='apikey',
-            name='org',
-            field=models.ForeignKey(related_name='api_keys', to='jobs.Organisation'),
+            options={
+                'verbose_name': 'Job',
+                'verbose_name_plural': 'Jobs',
+            },
         ),
     ]

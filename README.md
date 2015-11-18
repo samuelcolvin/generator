@@ -2,9 +2,6 @@
 
 [![Circle CI](https://circleci.com/gh/samuelcolvin/generator/tree/master.svg?circle-token=b924665daf07d607e259a94d0d3cbe3cd4671c5f)](https://circleci.com/gh/samuelcolvin/generator/tree/master)
 
-https://github.com/jettify/aiobotocore
-https://pypi.python.org/pypi/aio-s3/0.1
-
 https://github.com/sameersbn/docker-squid
 
 * environments, eg. collection of files used to gen:

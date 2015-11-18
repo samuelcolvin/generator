@@ -58,5 +58,5 @@ target/
 .idea
 fake_file_store
 src/localsettings.py
-src/dj/jobs/static/
+src/dj/static/libs/
 src/django_crud

@@ -13,6 +13,4 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RunSQL("alter table jobs_job alter column status set default '%s';" % JobStatus.STATUS_PENDING),
         migrations.RunSQL('alter table jobs_job alter column timestamp_created set default current_timestamp;'),
-        # migrations.RunSQL('CREATE EXTENSION IF NOT EXISTS pgcrypto;', None),
-        # migrations.RunSQL('alter table jobs_job alter column id set default gen_random_uuid();'),
     ]
