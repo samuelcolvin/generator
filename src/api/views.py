@@ -80,17 +80,17 @@ class APIController:
             logger.info('bad request: %s', 'invalid json', extra=request.log_extra)
             return bad_request_response('Error Decoding JSON: {}'.format(e))
 
-        if 'template' not in obj:
-            logger.info('bad request: %s', 'no template', extra=request.log_extra)
-            return bad_request_response('"template" not found in request JSON: "{}"'.format(data))
-        # TODO: check template belongs to correct org, get template from name
-        template = obj['template']
+        if 'env' not in obj:
+            logger.info('bad request: %s', 'no env', extra=request.log_extra)
+            return bad_request_response('"env" not found in request JSON: "{}"'.format(data))
+        # TODO: check env belongs to correct org, get env from name
+        env = obj['env']
 
         if 'html' not in obj:
             logger.info('bad request: %s', 'no html', extra=request.log_extra)
             return bad_request_response('"html" not found in request JSON: "{}"'.format(data))
 
-        job_id = await self.create_job(template)
+        job_id = await self.create_job(env)
         await self.add_to_queue(job_id, obj['html'])
 
         logger.info('good request: job created, %s', job_id, extra=request.log_extra)
@@ -104,9 +104,9 @@ class APIController:
         org = await cur.fetchone()
         return org
 
-    async def create_job(self, template_id):
+    async def create_job(self, env_id):
         id = str(uuid.uuid4())
-        await self.execute('INSERT INTO jobs_job (id, template_id) VALUES (%s, %s);', [id, template_id])
+        await self.execute('INSERT INTO jobs_job (id, env_id) VALUES (%s, %s);', [id, env_id])
         return id
 
     @asyncio.coroutine

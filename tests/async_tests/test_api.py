@@ -1,5 +1,5 @@
 from dj.orgs.models import Organisation, APIKey
-from dj.resources.models import Template
+from dj.resources.models import Env, Template
 
 
 async def test_no_auth_header(client):
@@ -40,9 +40,9 @@ async def test_good_token_no_json(client, db):
 async def test_good_token_good_json(client, db):
     org = Organisation.objects.create(name='test organisation')
     APIKey.objects.create(org=org, key='123')
-    template = Template.objects.create(org=org)
+    env = Env.objects.create(org=org, main_template=Template.objects.create(org=org))
     headers = {'Authorization': 'Token 123'}
-    data = '{"html": "<h1>hello</h1>", "template": "%s"}' % template.id
+    data = '{"html": "<h1>hello</h1>", "env": "%s"}' % env.id
     r = await client.post('/generate', data=data, headers=headers)
     assert r.status == 201
     content = await r.json()
@@ -56,4 +56,4 @@ async def test_good_token_good_json_missing_html(client, db):
     r = await client.post('/generate', data='{"other": "<h1>hello</h1>"}', headers=headers)
     assert r.status == 400
     content = await r.read()
-    assert content == b'"template" not found in request JSON: "{"other": "<h1>hello</h1>"}"\n'
+    assert content == b'"env" not found in request JSON: "{"other": "<h1>hello</h1>"}"\n'

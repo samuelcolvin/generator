@@ -106,9 +106,8 @@ class Worker:
     async def get_organisation_code(self, job_id):
         cur = await self.execute(
             'SELECT orgs_organisation.code FROM orgs_organisation '
-            'INNER JOIN resources_file ON orgs_organisation.id = resources_file.org_id '
-            'INNER JOIN resources_template ON resources_file.id = resources_template.file_ptr_id '
-            'INNER JOIN jobs_job ON resources_file.id = jobs_job.template_id WHERE '
+            'INNER JOIN resources_env ON orgs_organisation.id = resources_env.org_id '
+            'INNER JOIN jobs_job ON resources_env.id = jobs_job.env_id WHERE '
             'jobs_job.id = %s', [job_id])
         org = await cur.fetchone()
         return org[0]
