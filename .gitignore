@@ -60,3 +60,4 @@ fake_file_store
 src/localsettings.py
 src/dj/static/libs/
 src/django_crud
+src/media

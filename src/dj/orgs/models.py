@@ -87,6 +87,12 @@ class User(AbstractBaseUser):
     def get_full_name(self):
         return '{}, {}'.format(self.name, self.email)
 
+    def has_perm(self, perm, obj=None):
+        return True
+
+    def has_module_perms(self, app_label):
+        return True
+
 
 def generate_key():
     sys_random = random.SystemRandom()

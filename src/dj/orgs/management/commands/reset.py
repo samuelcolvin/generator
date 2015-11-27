@@ -1,7 +1,12 @@
+import shutil
+
+from django.conf import settings
 from django.core.management import BaseCommand, call_command
 from django.db import connection
 
 from dj.orgs.tests.factories import OrganisationFactory, APIKeyFactory, UserFactory
+from dj.resources.models import Template
+from dj.resources.tests.factories import TemplateFactory, ResourceFactory, EnvFactory
 
 
 class Command(BaseCommand):
@@ -16,6 +21,7 @@ class Command(BaseCommand):
         cur.execute('CREATE SCHEMA public;')
 
         call_command('migrate')
+        shutil.rmtree(settings.MEDIA_ROOT, ignore_errors=True)
 
         org = OrganisationFactory()
         print('Organisation created:', org)
@@ -23,3 +29,15 @@ class Command(BaseCommand):
         print('User created: email: {}, password: "testing"'.format(user.email))
         api_key = APIKeyFactory(org=org)
         print('API Key Created:', api_key.key)
+
+        EnvFactory(
+            org=org,
+            main_template__org=org,
+            base_template=TemplateFactory(org=org, template_type=Template.TYPE_BASE),
+            header_template=TemplateFactory(org=org, template_type=Template.TYPE_HEADER),
+            footer_template=TemplateFactory(org=org, template_type=Template.TYPE_FOOTER),
+            resources=[
+                ResourceFactory(org=org),
+                ResourceFactory(org=org),
+            ]
+        )

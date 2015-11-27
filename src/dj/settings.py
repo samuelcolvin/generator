@@ -3,7 +3,7 @@ import sys
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.dirname(BASE_DIR))
-from common import DATABASE, DEBUG  # NOQA
+from common import DATABASE, DEBUG, BASE_DIR as SRC_DIR  # NOQA
 
 SECRET_KEY = 'akt&bday!w=h^x_-cmd50_lc-=yj0(b)f-j$b-l3(_b71y=dq9'
 
@@ -93,3 +93,5 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+
+MEDIA_ROOT = os.getenv('MEDIA_ROOT', os.path.join(SRC_DIR, 'media'))

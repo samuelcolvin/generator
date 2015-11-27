@@ -2,7 +2,7 @@ from django.conf.urls import include, url
 from django.contrib import admin
 
 from .jobs.views import JobController
-from .organisations.views import OrganisationController
+from .orgs.views import OrganisationController
 
 urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),

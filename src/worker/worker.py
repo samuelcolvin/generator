@@ -6,6 +6,7 @@ import asyncio
 from asyncio import Semaphore
 
 from aiopg.pool import create_pool
+from psycopg2.extras import DictCursor
 import aioredis
 
 from common import JobStatus, QUEUES, MAX_WORKER_THREADS, MAX_WORKER_JOBS, DB_DSN, REDIS_HOST
@@ -71,7 +72,7 @@ class Worker:
         logger.debug('starting job from queue "%s" with data "%s"', queue, data)
         data = json.loads(data)
         job_id = data['job_id']
-        org_code = await self.get_organisation_code(job_id)
+        org_code, env_id = await self.get_basic_info(job_id)
         logger.info('starting job - %s for %s', job_id, org_code)
         await self.job_in_progress(job_id)
         content = data.get('content')
@@ -104,18 +105,35 @@ class Worker:
         await self.execute('UPDATE jobs_job SET status=%s, timestamp_complete=current_timestamp, '
                            'html=%s, file_size=%s WHERE id=%s;', ctx)
 
-    async def get_organisation_code(self, job_id):
+    async def get_basic_info(self, job_id):
         cur = await self.execute(
-            'SELECT orgs_organisation.code FROM orgs_organisation '
+            'SELECT orgs_organisation.code, resources_env.id FROM orgs_organisation '
             'INNER JOIN resources_env ON orgs_organisation.id = resources_env.org_id '
             'INNER JOIN jobs_job ON resources_env.id = jobs_job.env_id WHERE '
             'jobs_job.id = %s', [job_id])
-        org = await cur.fetchone()
-        return org[0]
+        org, env_id = await cur.fetchone()
+        return org, env_id
+
+    async def get_env_info(self, job_id, env_id):
+        cur = await self.execute(
+            'SELECT r_main.ref AS main_ref, r_main.file AS main_file, '
+            'r_base.ref as base_ref, r_base.file as base_file, '
+            'r_base.ref as header_ref, r_header.file as header_file, '
+            'r_base.ref as footer_ref, r_footer.file as footer_file '
+            'FROM resources_env '
+            'JOIN resources_file AS r_main ON r_main.id = resources_env.main_template_id '
+            'JOIN resources_file AS r_base ON r_base.id = resources_env.base_template_id '
+            'JOIN resources_file AS r_header ON r_header.id = resources_env.header_template_id '
+            'JOIN resources_file AS r_footer ON r_footer.id = resources_env.footer_template_id '
+            'WHERE resources_env.id = %s', [env_id], dict_cursor=True)
+        data = dict(await cur.fetchone())
+        print(data)
+        # FIXME, work stopped here
 
     @asyncio.coroutine
     def execute(self, *args, **kwargs):
+        cursor_factory = kwargs.pop('dict_cursor', None) and DictCursor
         with (yield from self._pool) as conn:
-            cur = yield from conn.cursor()
+            cur = yield from conn.cursor(cursor_factory=cursor_factory)
             yield from cur.execute(*args, **kwargs)
             return cur
