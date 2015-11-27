@@ -40,7 +40,7 @@ class Worker:
             while True:
                 await self.worker_sema.acquire()
                 queue, data = await self.redis.blpop(*QUEUES)
-                asyncio.ensure_future(self.work_handler(queue, data), loop=self.loop)
+                self.loop.create_task(self.work_handler(queue, data))
         finally:
             self.redis.close()
 
@@ -50,6 +50,7 @@ class Worker:
         except:
             logger.error('error processing job: %s', sys.exc_info()[1])
             self.exc_info = sys.exc_info()
+            raise
 
     async def work(self, queue_raw, raw_data):
         """

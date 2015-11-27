@@ -1,5 +1,6 @@
 coverage
 codecov
+factory-boy
 flake8
 pytest
 pytest-mock

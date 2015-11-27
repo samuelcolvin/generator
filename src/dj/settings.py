@@ -76,6 +76,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'dj.wsgi.application'
 
+AUTH_USER_MODEL = 'orgs.User'
+
 DATABASES = {'default': DATABASE}
 
 LANGUAGE_CODE = 'en-gb'
