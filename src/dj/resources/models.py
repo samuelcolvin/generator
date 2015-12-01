@@ -24,6 +24,7 @@ def get_upload_path(instance, filename):
 
 class File(models.Model):
     DIRECTORY = 'files'
+
     org = models.ForeignKey(Organisation)
     ref = models.CharField(_('Ref'), max_length=255)
     file = models.FileField(_('File'), upload_to=get_upload_path, max_length=255)
@@ -69,6 +70,7 @@ class Template(File):
 
 class Resource(File):
     DIRECTORY = 'resources'
+
     TYPE_CSS = 'css'
     TYPE_JS = 'js'
     TYPE_IMAGE = 'image'

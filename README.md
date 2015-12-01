@@ -5,12 +5,7 @@
 https://github.com/sameersbn/docker-squid
 
 * environments, eg. collection of files used to gen:
-  * static files
-  * mustache templating
-  * jinja2 templating inc. imported files
-  * footer/header integration. How do we do this most clearly?
 * django interface for users
-* best way to deal with dynamic images in documents? other upload, url encoded.
 * remote ftp/webhook/S3 support to return PDF docs.
 * notification about complete documents:
   * webhook response to complete documents
@@ -22,6 +17,7 @@ https://github.com/sameersbn/docker-squid
   * page ordering eg. booklet
   * PDF forms. Maybe no one sane would use these?
 
+wkhtmltopdf `--disable-local-file-access`
 
 ## Setup
 
